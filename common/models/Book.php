@@ -76,41 +76,4 @@ class Book extends \yii\db\ActiveRecord
         return $this->authorIds;
     }
 
-    public function afterSave($insert, $changedAttributes=null)
-    {
-        $actualAuthors = [];
-        $authorExists = 0; //for updates
-
-        if (($actualAuthors = BookAuthor::find()
-                ->andWhere("book_id = $this->id")
-                ->asArray()
-                ->all()) !== null) {
-            $actualAuthors = ArrayHelper::getColumn($actualAuthors, 'author_id');
-            $authorExists = 1; // if there is authors relations, we will work it latter
-        }
-
-        if (!empty($this->despIds)) { //save the relations
-            foreach ($this->despIds as $id) {
-                $actualAuthors = array_diff($actualAuthors, [$id]); //remove remaining authors from array
-                $r = new BookAuthor();
-                $r->book_id = $this->id;
-                $r->author_id = $id;
-                $r->save();
-            }
-        }
-
-        if ($authorExists == 1) { //delete authors tha does not belong anymore to this book
-            foreach ($actualAuthors as $remove) {
-                $r = BookAuthor::findOne(['author_id' => $remove, 'book_id' => $this->id]);
-                $r->delete();
-            }
-        }
-
-        /*$bookAuther = new BookAuthor();
-        foreach ($this->authorIds as $authorId) {*/
-
-
-
-        parent::afterSave($insert, $changedAttributes=null); //don't forget this
-    }
 }

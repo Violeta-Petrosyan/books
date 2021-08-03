@@ -1,8 +1,10 @@
 <?php
 
+use backend\widgets\AuthorsBooksWidget;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
-use backend\components\AuthorsBooksWidget;
+
+
 $model = new \common\models\Author();
 $form = ActiveForm::begin();?>
 
@@ -11,5 +13,16 @@ $form = ActiveForm::begin();?>
 <div class="form-group">
     <?= Html::submitButton('Search', ['class' => 'btn btn-success']) ?>
 </div>
-<?= AuthorsBooksWidget::widget() ?>
+
+<?php
+    $id = '';
+    if(Yii::$app->request->post()) {
+        $id = (intval((Yii::$app->request->post()["Author"]["id"])));
+    }
+    if(!$id) {
+        echo "Please enter the Id.";
+    }
+?>
+<?= AuthorsBooksWidget::widget(['author'=> $id]) ?>
 <?php ActiveForm::end(); ?>
+

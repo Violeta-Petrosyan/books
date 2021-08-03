@@ -1,5 +1,7 @@
 <?  /*@var $author common\models\Author*/ ?>
 
+
+
 <div>
     <?= \yii\grid\GridView::widget([
         'dataProvider' => $dataProvider,
@@ -9,5 +11,3 @@
         ]
     ]); ?>
 </div>
-
-

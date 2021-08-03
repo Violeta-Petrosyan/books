@@ -6,6 +6,7 @@ use common\models\BookAuthor;
 use Yii;
 use common\models\Book;
 use backend\models\BookSearch;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -67,16 +68,43 @@ class BookController extends Controller
     {
         $model = new Book();
 
-//        print_r(Yii::$app->request->post());die;
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
 
-            foreach($model->authorIds as $authorId) {
+            foreach ($model->authorIds as $authorId) {
                 $bookAuthor = new BookAuthor();
                 $bookAuthor->book_id = $model->id;
                 $bookAuthor->author_id = $authorId;
                 $bookAuthor->save();
             }
+
+            $actualAuthors = [];
+            $authorExists = 0;
+
+            if (($actualAuthors = BookAuthor::find()
+                    ->andWhere("book_id = $model->id")
+                    ->asArray()
+                    ->all()) !== null) {
+                $actualAuthors = ArrayHelper::getColumn($actualAuthors, 'author_id');
+                $authorExists = 1;
+            }
+
+            if (!empty($this->despIds)) {
+                foreach ($this->despIds as $id) {
+                    $actualAuthors = array_diff($actualAuthors, [$id]);
+                    $r = new BookAuthor();
+                    $r->book_id = $model->id;
+                    $r->author_id = $id;
+                    $r->save();
+                }
+            }
+
+            if ($authorExists == 1) {
+                foreach ($actualAuthors as $remove) {
+                    $r = BookAuthor::findOne(['author_id' => $remove, 'book_id' => $model->id]);
+                    $r->delete();
+                }
+            }
+
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
